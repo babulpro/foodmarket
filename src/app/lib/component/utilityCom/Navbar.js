@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import CartOption from "./CartOption";
 
 const Navbar = () => {
     const router = useRouter();
@@ -111,7 +112,7 @@ const Navbar = () => {
                         ))}
                     </ul>
                 </div>
-
+{/*----------------------------- searchitms-------------------------------------- */}
                 <div className="navbar-end flex-none gap-2">
                     <div className="form-control">
                         <input
@@ -120,6 +121,12 @@ const Navbar = () => {
                             className="input input-bordered w-24 md:w-auto"
                         />
                     </div>
+
+ {/* -----------------------------cart item----------------- */}
+                        <div className="flex-none">
+                            <CartOption/>
+                        </div>
+       {/* --------------------------lonInOption---------------------------              */}
                     <div className="dropdown dropdown-end">
                         <div tabIndex="0" role="button" className="btn btn-ghost btn-circle avatar">
                             <div className="w-10 rounded-full">
