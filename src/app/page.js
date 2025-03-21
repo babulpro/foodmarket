@@ -1,12 +1,19 @@
+import Courses from "./lib/component/utilityCom/Courses";
+import MainNavbar from "./lib/component/utilityCom/MainNavbar";
+import { cookies } from 'next/headers'
+import Navbar from "./lib/component/utilityCom/Navbar";
  
-import Image from "next/image";
 
-export default function Home() {
+export default async function Home({children}) {
+  const cookieStore =await cookies();
+  const myCookie = cookieStore.get('token');
   
+  
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-     
-       Hello babul you are going to build an e-connerce prject.thank you so much.
+    <div> 
+      {myCookie ?<Navbar/>:<MainNavbar/>}
+      <Courses/>
     </div>
   );
 }
