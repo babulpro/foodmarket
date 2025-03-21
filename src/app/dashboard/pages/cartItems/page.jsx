@@ -1,9 +1,10 @@
+import CartView from '@/app/lib/component/utilityCom/CartView';
 import React from 'react';
 
 const Page = () => {
     return (
         <div>
-            this is the about page
+            <CartView/>
         </div>
     );
 };

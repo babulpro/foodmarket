@@ -49,11 +49,11 @@ const CartOption = () => {
                                         <span className="text-lg font-bold">{data.length} Items</span>
                                         <span className="text-info">Subtotal: $ {totalPrice}</span>
                                         <div className="card-actions">
-                                            <button className="btn btn-primary btn-block">View cart</button>
-                      </div>
-                     </div>
-                </div>
-           </div>
+                                            <Link href={'/dashboard/pages/cartItems'} className="btn btn-primary btn-block">View cart</Link>
+                                 </div>
+                           </div>
+                    </div>
+              </div>
       );
 };
 
