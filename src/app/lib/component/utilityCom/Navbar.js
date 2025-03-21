@@ -21,7 +21,7 @@ const Navbar = () => {
                 }
 
                 const data = await response.json();
-                setData(data.data); // Assuming the API sends `{ status: "ok", data: [...] }`
+                setData(data.data); 
             } catch (err) {
                 console.error("Error fetching navbar data:", err);
                 setError(err.message);
