@@ -1,60 +1,84 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
-const CartView=()=>{
-      const [data, setData] = useState([]);
-        const [error, setError] = useState(null);
-    
-        useEffect(() => {
-            const fetchHeroData = async () => {
-                try {
-                    const response = await fetch("/api/getData/product/getToCart", { cache: "no-store" });
-                    const data = await response.json();
-    
-                    if (data.status == 'ok') {
-                      setData(data.data);   
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-    
-                } catch (err) {
-                    setError(err.message);
-                }
-            };
-    
-            fetchHeroData();
-        }, []);
-    
-        const totalPrice=data.reduce((pre,curr)=>{
-          return pre+=(curr["product"].price*curr.quantity)
-        },0)
-        
-      
-        return (
-           <div className="grid md:grid-cols-2 gap-5 ">
-               {
-                data.length>0 &&
-                data.map((value)=>
-                    <div key={value._id} className="card bg-base-100  shadow-sm">
+const CartView = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCartData = async () => {
+      try {
+        const response = await fetch("/api/getData/product/getToCart", {
+          cache: "no-store",
+        });
+        const result = await response.json();
+
+        if (result.status === "ok") {
+          setData(result.data);
+        } else {
+          setError("Failed to fetch cart items.");
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartData();
+  }, []);
+
+  if (loading) return <h1>Loading Cart...</h1>;
+  if (error) return <h1 className="text-red-500">Error: {error}</h1>;
+  if (data.length === 0) return <h1>No Items in Cart</h1>;
+
+  return (
+    <div className="grid gap-5">
+      {data.map((value) => (
+        <div key={value._id} className="card bg-base-100 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Image Section */}
+            {value.product ? (
+              <div className="w-full md:w-2/3 m-auto p-5 rounded-2xl">
                 <figure>
-                    <img
-                    src={value.product.images[0]}
-                    alt="Shoes" />
+                  <img
+                    src={value.product.images?.[0] || "/placeholder.png"}
+                    alt={value.product.name || "No Image"}
+                    className="w-full h-auto rounded-lg"
+                  />
                 </figure>
-                <div className="card-body">
-                    <Link href={`/dashboard/pages/details/${value.product._id}`}><h2 className="card-title underline">{value.product.name}</h2></Link>
-                    <p>{value.product.description}</p>
-                    <p>Total Price:{value.product.price *value.quantity}</p>
-                    <p>Quantity: {value.quantity}</p>
-                    <div className="card-actions justify-end">
-                    <button className="btn btn-primary">Buy Now</button>
-                    </div>
-                </div>
-            </div>
-                )
-               }
-           </div>
-          );
+              </div>
+            ) : (
+              <div className="w-full md:w-2/3 m-auto p-5 rounded-2xl">
+                <p className="text-red-500">Product not available</p>
+              </div>
+            )}
 
-}
-export default CartView
+            {/* Product Details */}
+            <div className="card-body">
+              {value.product ? (
+                <>
+                  <Link href={`/dashboard/pages/details/${value.product._id}`}>
+                    <h2 className="card-title underline">{value.product.name}</h2>
+                  </Link>
+                  <p>{value.product.description}</p>
+                  <p>Total Price: {value.product.price * value.quantity}</p>
+                  <p>Quantity: {value.quantity}</p>
+                  <div className="card-actions justify-end">
+                    <button className="btn btn-primary">Buy Now</button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-gray-500">This product is no longer available.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default CartView;
