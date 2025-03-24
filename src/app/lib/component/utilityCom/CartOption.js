@@ -43,7 +43,7 @@ const CartOption = () => {
 
   if (loading) return <h1>.</h1>;
   if (error) return <h1 className="text-red-500">.</h1>;
-    if (data.length === 0) return <h1></h1>;
+
 
   return (
     <div className="dropdown dropdown-end">

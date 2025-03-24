@@ -1,4 +1,4 @@
-import Courses from "./lib/component/utilityCom/Courses";
+import AllProduct from "./lib/component/utilityCom/AllProduct";
 import MainNavbar from "./lib/component/utilityCom/MainNavbar";
 import { cookies } from 'next/headers'
 import Navbar from "./lib/component/utilityCom/Navbar";
@@ -13,7 +13,7 @@ export default async function Home({children}) {
   return (
     <div> 
       {myCookie ?<Navbar/>:<MainNavbar/>}
-      <Courses/>
+      <AllProduct/>
     </div>
   );
 }

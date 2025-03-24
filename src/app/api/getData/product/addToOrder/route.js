@@ -90,3 +90,100 @@ export async function POST(req, res) {
         )
     }
 }
+
+
+
+ 
+
+export async function DELETE(req) {
+    try {
+        await dbConnect()
+        const cookieStore = cookies()
+        const token = cookieStore.get('token')
+        
+        if (!token) {
+            return NextResponse.json(
+                { status: "fail", message: "Unauthorized" }, 
+                { status: 401 }
+            )
+        }
+        
+        const decoded = await DecodedJwtToken(token.value)
+        const userId = decoded.id
+        
+        const { orderId, orderItemId } = await req.json()
+        
+        if (!orderId || !orderItemId) {
+            return NextResponse.json(
+                { status: "fail", message: "Missing order ID or item ID" },
+                { status: 400 }
+            )
+        }
+
+        // Verify the order belongs to the user
+        const order = await Order.findOne({ 
+            _id: orderId, 
+            user: userId 
+        })
+        
+        if (!order) {
+            return NextResponse.json(
+                { status: "fail", message: "Order not found or access denied" },
+                { status: 404 }
+            )
+        }
+
+        // Remove the order item
+        const deletedItem = await OrderItem.findOneAndDelete({
+            _id: orderItemId,
+            order: orderId
+        })
+        
+        if (!deletedItem) {
+            return NextResponse.json(
+                { status: "fail", message: "Order item not found" },
+                { status: 404 }
+            )
+        }
+
+        // Update the order
+        order.items = order.items.filter(item => item.toString() !== orderItemId)
+        order.totalAmount = Math.max(0, order.totalAmount - deletedItem.price)
+        
+        // Delete the order if it's empty
+        if (order.items.length === 0) {
+            await Order.findByIdAndDelete(orderId)
+            return NextResponse.json({
+                status: "success",
+                message: "Order deleted successfully as it became empty",
+                data: { deletedOrder: orderId }
+            })
+        }
+        
+        await order.save()
+        
+        return NextResponse.json({
+            status: "success",
+            message: "Order item removed successfully",
+            data: {
+                deletedItem,
+                updatedOrder: {
+                    id: order._id,
+                    totalAmount: order.totalAmount,
+                    remainingItems: order.items.length
+                }
+            }
+        })
+
+    } catch (error) {
+        console.error("Order removal error:", error)
+        return NextResponse.json(
+            { 
+                status: "error", 
+                message: error.message || "Failed to remove order item",
+                ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+            },
+            { status: 500 }
+        )
+    }
+}

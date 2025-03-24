@@ -91,3 +91,104 @@ export async function POST(req) {
         )
     }
 }
+
+
+
+ 
+
+ 
+export async function DELETE(req) {
+    try {
+        await dbConnect()
+        
+        // Authentication
+        const cookieStore = cookies()
+        const token = cookieStore.get('token')
+        
+        if (!token) {
+            return NextResponse.json(
+                { status: "fail", message: "Unauthorized - No token provided" },
+                { status: 401 }
+            )
+        }
+
+        // Authorization
+        const decoded = await DecodedJwtToken(token.value)
+        const userId = decoded.id
+        
+        // Get product ID to remove from request body
+        const { productId } = await req.json()
+        
+        if (!productId) {
+            return NextResponse.json(
+                { status: "fail", message: "Product ID is required" },
+                { status: 400 }
+            )
+        }
+
+        // Start transaction for atomic operations
+        const session = await Cart.startSession()
+        session.startTransaction()
+        
+        try {
+            // Find user's cart
+            const cart = await Cart.findOne({ user: userId }).session(session)
+            
+            if (!cart) {
+                return NextResponse.json(
+                    { status: "fail", message: "Cart not found" },
+                    { status: 404 }
+                )
+            }
+
+            // Remove cart item
+            const result = await CartItem.findOneAndDelete({
+                product: productId,
+                cart: cart._id
+            }).session(session)
+
+            if (!result) {
+                return NextResponse.json(
+                    { status: "fail", message: "Item not found in cart" },
+                    { status: 404 }
+                )
+            }
+
+            // Update cart's items array
+            await Cart.findByIdAndUpdate(
+                cart._id,
+                { $pull: { items: result._id } },
+                { session }
+            )
+
+            await session.commitTransaction()
+            
+            return NextResponse.json({
+                status: "success",
+                data: {
+                    removedItem: result,
+                    cartId: cart._id,
+                    remainingItems: cart.items.length - 1
+                },
+                message: "Item removed from cart successfully"
+            })
+
+        } catch (transactionError) {
+            await session.abortTransaction()
+            throw transactionError
+        } finally {
+            session.endSession()
+        }
+
+    } catch (error) {
+        console.error("Remove from cart error:", error)
+        return NextResponse.json(
+            { 
+                status: "error",
+                message: error.message || "Failed to remove item from cart",
+                ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+            },
+            { status: 500 }
+        )
+    }
+}
