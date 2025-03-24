@@ -12,7 +12,7 @@ const CartOption = () => {
     const fetchHeroData = async () => {
       try {
         const response = await fetch("/api/getData/product/getToCart", {
-          cache: "no-store",
+          
         });
         const result = await response.json();
 
@@ -42,8 +42,8 @@ const CartOption = () => {
   }, [data]);
 
   if (loading) return <h1>.</h1>;
-  if (error) return <h1 className="text-red-500">Error: {error}</h1>;
-  if (data.length === 0) return <h1>No Items in Cart</h1>;
+  if (error) return <h1 className="text-red-500">.</h1>;
+    if (data.length === 0) return <h1></h1>;
 
   return (
     <div className="dropdown dropdown-end">
@@ -75,7 +75,10 @@ const CartOption = () => {
           <span className="text-info">Subtotal: {price}</span>
           <div className="card-actions">
             <Link href={"/dashboard/pages/cartItems"} className="btn btn-primary btn-block">
-              View cart
+              View Cart
+            </Link>
+            <Link href={"/dashboard/pages/orderItems"} className="btn btn-primary btn-block">
+              View Order
             </Link>
           </div>
         </div>

@@ -1,34 +1,69 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const CartView = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const router = useRouter();
+
+  const fetchCartData = async () => {
+    try {
+      const response = await fetch("/api/getData/product/getToCart", {
+        cache: "no-store"
+      });
+      const result = await response.json();
+
+      if (result.status === "ok") {
+        setData(result.data);
+      } else {
+        setError("Failed to fetch cart items.");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCartData = async () => {
-      try {
-        const response = await fetch("/api/getData/product/getToCart", {
-          cache: "no-store",
-        });
-        const result = await response.json();
-
-        if (result.status === "ok") {
-          setData(result.data);
-        } else {
-          setError("Failed to fetch cart items.");
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCartData();
   }, []);
+
+  const buttonHandleClick = async (id, quantity, price) => {
+    try {
+      const response = await fetch("/api/getData/product/addToOrder", {
+        method: "POST",
+        body: JSON.stringify({ product: id, quantity, price }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        // Optimistically update the UI by removing the ordered item
+        setData(prevData => prevData.filter(item => item.product._id !== id));
+        
+        // Show success message
+        alert("Order Success");
+        
+        // Refresh the cart data to ensure consistency
+        await fetchCartData();
+        
+        // Optionally redirect (commented out as you might not need it)
+        // router.push("/dashboard/pages/cartItems");
+      } else {
+        throw new Error(result.message || "Failed to process order");
+      }
+    } catch (err) {
+      alert(`Order Failed: ${err.message}`);
+      console.error("Order error:", err);
+    }
+  };
 
   if (loading) return <h1>Loading Cart...</h1>;
   if (error) return <h1 className="text-red-500">Error: {error}</h1>;
@@ -67,7 +102,16 @@ const CartView = () => {
                   <p>Total Price: {value.product.price * value.quantity}</p>
                   <p>Quantity: {value.quantity}</p>
                   <div className="card-actions justify-end">
-                    <button className="btn btn-primary">Buy Now</button>
+                    <button 
+                      onClick={() => buttonHandleClick(
+                        value.product._id, 
+                        value.quantity, 
+                        value.product.price
+                      )} 
+                      className="btn btn-primary"
+                    >
+                      Buy Now
+                    </button>
                   </div>
                 </>
               ) : (
