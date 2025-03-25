@@ -9,13 +9,12 @@ import {cookies} from 'next/headers'
 
 export async function POST(req) {
   const data = await req.json();
-  console.log(data)
 
   // Password hashing
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(data.password, salt);
   data.password = hash; 
-
+   
   await dbConnect();
   const user = await User.findOne({ email:data.email })
   if(!user){
@@ -47,9 +46,5 @@ export async function POST(req) {
 
 }
 
-export async function GET(req) {
-  return NextResponse.json({status:"ok"})
-}
  
-
  

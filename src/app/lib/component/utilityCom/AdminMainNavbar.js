@@ -6,30 +6,26 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import CartOption from "./CartOption";
 
-const Navbar = () => {
+const AdminMainNavbar = () => {
     const router = useRouter();
     const [activePath, setActivePath] = useState(""); // Tracks the currently active path
     const [Data, setData] = useState([]);
-    const [user, setUser] = useState();
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchHeroData = async () => {
             try {
                 const response = await fetch("/api/getData/navbar", { cache: "no-store" });
-                const responseUser = await fetch("/api/User/get", { cache: "no-store" });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                const userData = await responseUser.json()
-                 
                 setData(data.data); 
-                setUser(userData[0].role)
             } catch (err) {
                 console.error("Error fetching navbar data:", err);
-                 
+                setError(err.message);
             }
         };
 
@@ -60,7 +56,6 @@ const Navbar = () => {
     const logIn = async () => {
         router.replace("/login");
     };
-    console.log(user)
 
     return (
         <div>
@@ -144,10 +139,7 @@ const Navbar = () => {
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
                         >
                             <li>
-                                {/* <Link href="/dashboard/pages/Admin" className="justify-between">
-                                    {user==="ADMIN"? "Admin":"User"}
-                                </Link> */}
-                                {user =="ADMIN"?<Link href={"/dashboard/pages/Admin"}>Admin</Link>:<Link href={"/dashboard/pages/user"}>Update</Link>}
+                            <Link href="/dashboard/pages/Admin">Admin</Link>
                             </li>
                             <li>
                                 <button onClick={logIn}>Log In</button>
@@ -166,4 +158,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default AdminMainNavbar;

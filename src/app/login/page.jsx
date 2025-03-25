@@ -62,7 +62,7 @@ export default function Page(){
             }
         }
     };
-    
+ 
  
     return(
         <div className="container m-auto bg-slate-700 min-h-1/2 items">

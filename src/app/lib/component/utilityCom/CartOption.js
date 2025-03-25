@@ -42,7 +42,7 @@ const CartOption = () => {
   }, [data]);
 
   if (loading) return <h1>.</h1>;
-  if (error) return <h1 className="text-red-500">.</h1>;
+  
 
 
   return (
