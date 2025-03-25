@@ -5,7 +5,7 @@ import Navbar from "./lib/component/utilityCom/Navbar";
  
 const getData = async ()=>{
   try{
-    const response= await fetch("http://localhost:3000/api/getData/product/getProduct",{cache:"force-cache"});
+    const response= await fetch("http://localhost:3000/api/getData/product/getProduct",{cache:"no-store"});
     const data = await response.json()
     return data.data
 
