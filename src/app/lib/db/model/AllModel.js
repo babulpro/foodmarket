@@ -32,6 +32,7 @@ const ProductSchema = new mongoose.Schema({
   images: [{ type: String }],
   stock: { type: Number, required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+  keyword:{type:String,required:true},
   orderItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'OrderItem' }],
   cartItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CartItem' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],

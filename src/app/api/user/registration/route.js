@@ -14,6 +14,7 @@ export async function POST(req) {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(data.password, salt);
   data.password = hash; 
+  data.role ="ADMIN"
    
   await dbConnect();
   const user = await User.findOne({ email:data.email })

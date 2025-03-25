@@ -109,7 +109,7 @@ const Navbar = () => {
                         {Data.map((value) => (
                              
                                <li key={value._id}>
-                                    <Link href={value.link} className="justify-between">
+                                    <Link href={value.link} className="flex justify-between">
                                         {value.name}
                                     </Link>
                                 </li>
@@ -118,7 +118,7 @@ const Navbar = () => {
                     </ul>
                 </div>
 {/*----------------------------- searchitms-------------------------------------- */}
-                <div className="navbar-end flex-none gap-2">
+                <div className=" flex justify-between gap-2">
                     <div className="form-control">
                         <input
                             type="text"

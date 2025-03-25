@@ -28,7 +28,9 @@ export default function RootLayout({ children }) {
         <div className="mb-16">
  
         </div>
-        {children}
+        <div className="min-h-screen">
+                        {children}
+                    </div>
         <Footer/>
         <Toaster position="top-center" reverseOrder={false}/>
       </body>

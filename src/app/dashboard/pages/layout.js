@@ -4,9 +4,10 @@ import React from 'react';
 const layout = ({children}) => {
     return (
         <div>
-            <Navbar/>
-       
-            {children}
+            <Navbar/>       
+            <div className="min-h-screen">
+                {children}
+            </div>
         </div>
     );
 };
