@@ -8,7 +8,7 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { name, description, price,images,stock,category} = body;
+    const { name, description, price,images,stock,category,keyword} = body;
 
     if (!category) {
       return NextResponse.json({ status: "failed", msg: "Category ID is required" }, { status: 400 });
@@ -20,7 +20,8 @@ export async function POST(req) {
       price,
       images,
       stock,
-      category
+      category,
+      keyword
     };
 
     const result = await  Product.create({...product});

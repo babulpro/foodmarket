@@ -107,6 +107,9 @@ const AllProduct = () => {
                         <p className="mt-1 text-gray-600 font-medium">
                             ৳ {product.price?.toLocaleString()}
                         </p>
+                        <p className="mt-1 text-gray-600 font-medium">
+                            Stock: {product.stock?.toLocaleString()}
+                        </p>
                     </Link>
                 </div>
             ))}

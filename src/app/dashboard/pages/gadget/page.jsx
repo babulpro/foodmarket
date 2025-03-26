@@ -10,7 +10,7 @@ const page = () => {
         useEffect(() => {
             const fetchHeroData = async () => {
                 try {
-                    const response = await fetch("/api/getData/news", { cache: "force-cache" });
+                    const response = await fetch("/api/getData/product/getProduct", { cache: "no-store" });
     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -25,13 +25,15 @@ const page = () => {
     
             fetchHeroData();
         }, []);
- 
-        let data = Data.filter((value)=>value.type === "entertainment");
+
+ if(Data.length>0){
+        let data = Data.filter((value)=>value.keyword === "gadget");
+        
     return (
         <div>
             <Pages Data={data}/>
         </div>
     );
-};
+};}
 
 export default page;
