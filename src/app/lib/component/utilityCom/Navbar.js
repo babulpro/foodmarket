@@ -16,8 +16,8 @@ const Navbar = () => {
     useEffect(() => {
         const fetchHeroData = async () => {
             try {
-                const response = await fetch("/api/getData/navbar", { cache: "force-cache" });
-                const responseUser = await fetch("/api/User/get", { cache: "force-cache" });
+                const response = await fetch("/api/getData/navbar", { cache: "no-store" });
+                const responseUser = await fetch("/api/User/get", { cache: "no-store" });
                   
 
                 if (!response.ok) {
