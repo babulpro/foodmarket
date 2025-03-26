@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import CartOption from "./CartOption";
+ 
 
 const Navbar = () => {
     const router = useRouter();
@@ -15,7 +16,8 @@ const Navbar = () => {
     useEffect(() => {
         const fetchHeroData = async () => {
             try {
-                const response = await fetch("/api/getData/navbar", { cache: "no-store" });
+                const response = await fetch("/api/getData/navbar", { cache: "force-cache" });
+                const responseUser = await fetch("/api/User/get", { cache: "force-cache" });
                   
 
                 if (!response.ok) {
@@ -23,9 +25,11 @@ const Navbar = () => {
                 }
 
                 const data = await response.json();
+                const userData = await responseUser.json();
                  
                  
                 setData(data.data); 
+                setUser(userData["0"].role);
                 
             } catch (err) {
                 console.error("Error fetching navbar data:", err);
