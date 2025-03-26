@@ -16,17 +16,17 @@ const Navbar = () => {
         const fetchHeroData = async () => {
             try {
                 const response = await fetch("/api/getData/navbar", { cache: "no-store" });
-                const responseUser = await fetch("/api/User/get", { cache: "no-store" });
+                  
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                const userData = await responseUser.json()
+                 
                  
                 setData(data.data); 
-                setUser(userData[0].role)
+                
             } catch (err) {
                 console.error("Error fetching navbar data:", err);
                  
@@ -60,8 +60,7 @@ const Navbar = () => {
     const logIn = async () => {
         router.replace("/login");
     };
-    console.log(user)
-
+   
     return (
         <div>
             <div className="navbar bg-base-100 fixed top-0 z-50">
