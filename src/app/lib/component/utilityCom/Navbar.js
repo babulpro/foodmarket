@@ -11,25 +11,23 @@ const Navbar = () => {
     const router = useRouter();
     const [activePath, setActivePath] = useState(""); // Tracks the currently active path
     const [Data, setData] = useState([]);
-    const [user, setUser] = useState();
+    
 
     useEffect(() => {
         const fetchHeroData = async () => {
             try {
                 const response = await fetch("/api/getData/navbar", { cache: "no-store" });
-                const responseUser = await fetch("/api/User/get", { cache: "no-store" });
-                  
+                
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                const userData = await responseUser.json();
                  
                  
-                setData(data.data); 
-                setUser(userData["0"].role);
+                 
+                setData(data.data);  
                 
             } catch (err) {
                 console.error("Error fetching navbar data:", err);
@@ -150,7 +148,7 @@ const Navbar = () => {
                                 {/* <Link href="/dashboard/pages/Admin" className="justify-between">
                                     {user==="ADMIN"? "Admin":"User"}
                                 </Link> */}
-                                {user =="ADMIN"?<Link href={"/dashboard/pages/Admin"}>Admin</Link>:<Link href={"/dashboard/pages/user"}>Update</Link>}
+                                 <Link href={"/dashboard/pages/user"}>Update</Link>
                             </li>
                             <li>
                                 <button onClick={logIn}>Log In</button>
