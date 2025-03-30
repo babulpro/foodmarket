@@ -12,8 +12,7 @@ const AllProduct = () => {
             try {
                 setLoading(true);
                 const response = await fetch("/api/getData/product/getProduct", { 
-                    cache: "no-store",
-                    next: { tags: ['products'] } // For revalidation
+                    cache: "no-store"
                 });
 
                 if (!response.ok) {
