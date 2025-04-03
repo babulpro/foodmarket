@@ -41,7 +41,7 @@ const CartOption = () => {
     }
   }, [data]);
 
-  if (loading) return <h1>.</h1>;
+  if (loading) return ;
   
 
 

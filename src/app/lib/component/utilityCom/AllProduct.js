@@ -1,92 +1,106 @@
-"use client";
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
  
+
+"use client";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import toast from "react-hot-toast";
+ 
+
 const AllProduct = () => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [product, setProduct] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchProductData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch("/api/getData/product/getProduct", { 
-                    cache: "no-store"
-                });
+  const fetchOrderData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/getData/product/getProduct", {
+        cache: "no-store"
+      });
+      const result = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch products: ${response.status}`);
-                }
-
-                const result = await response.json();
-                if (result.data) {
-                    setProducts(result.data);
-                } else {
-                    throw new Error("Invalid data structure received");
-                }
-            } catch (err) {
-                console.error("Fetch error:", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProductData();
-    }, []);
-
-    // Loading skeleton
-    if (loading) {
-        return (
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <p>loading............</p>
-            </div>
-        );
+      if (result.status === "ok") {
+        setProduct(result.data || []);
+      } else {
+        setError(result.message || "Failed to fetch product");
+        toast.error(result.message || "Failed to fetch product");
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Error state
-    if (error) {
-        return (
-            <div className="p-4 text-center">
-                <div className="alert alert-error max-w-md mx-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{error}</span>
-                    <button 
-                        onClick={() => window.location.reload()} 
-                        className="btn btn-sm ml-4"
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
-        );
-    }
+//   const handleRemoveItem = async (orderItemId,orderId) => {
+//     try {
+//       const response = await fetch("/api/getData/product/addToOrder", {
+//         method: "DELETE",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ orderId,orderItemId }),
+//       });
 
-    // Empty state
-    if (products.length === 0) {
-        return (
-            <div className="p-4 text-center">
-                <div className="max-w-md mx-auto py-12">
-                    <div className="text-5xl mb-4">📦</div>
-                    <h3 className="text-xl font-semibold mb-2">No Products Found</h3>
-                    <p className="text-gray-500 mb-4">We couldn't find any products at the moment.</p>
-                    <button 
-                        onClick={() => window.location.reload()} 
-                        className="btn btn-primary"
-                    >
-                        Refresh
-                    </button>
-                </div>
-            </div>
-        );
-    }
+//       const result = await response.json();
 
-    return (
-        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+//       if (result.status === "success") {
+//         toast.success("Item removed successfully");
+//         setProduct(prev => prev.filter(item => item._id !== orderItemId));
+//       } else {
+//         throw new Error(result.message || "Failed to remove item");
+//       }
+//     } catch (err) {
+//       toast.error(err.message);
+//       console.error("Remove error:", err);
+//     }
+//   };
+
+  useEffect(() => {
+    fetchOrderData();
+  }, []);
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <span className="loading loading-spinner loading-lg"></span>
+      <span className="ml-4 text-lg">Loading your product...</span>
+    </div>
+  );
+
+  if (error) return (
+    <div className="alert alert-error max-w-2xl mx-auto mt-8">
+      <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>Error: {error}</span>
+    </div>
+  );
+
+  if (product.length === 0) return (
+    <div className="text-center py-12">
+      <h1 className="text-2xl font-bold mb-4">No product Found</h1>
+      <p className="text-gray-500 mb-6">You haven't placed any product yet.</p>
+      <Link href="/dashboard/pages/products" className="btn btn-primary">
+        Browse Products
+      </Link>
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">View All Products</h1>
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-title">Total Products</div>
+            <div className="stat-value">{product.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {product.map((product) => (
                 <div key={product._id} className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <Link href={`/dashboard/pages/details/${product._id}`} className="block group">
                         <div className="aspect-square overflow-hidden rounded-lg">
@@ -113,7 +127,12 @@ const AllProduct = () => {
                 </div>
             ))}
         </div>
-    );
+    </div>
+  );
 };
 
 export default AllProduct;
+
+
+
+ 
