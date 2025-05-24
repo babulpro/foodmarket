@@ -1,8 +1,8 @@
  
- "use client";
  
-// import FoodCard from "@/app/lib/component/utilityCom/FoodCard";
-// import Link from "next/link";
+import FoodCard from "@/app/lib/component/utilityCom/FoodCard";
+
+ 
  
 
  
@@ -27,10 +27,9 @@ const Page=async({params})=>{
     const data = await getData(keyword)
     
     return(
-        <div className="mt-16">
-            this is the card
+        <div className="mt-16"> 
            
-            {/* <FoodCard items={data} /> */}
+            <FoodCard items={data} />
         </div>
     )
 }
