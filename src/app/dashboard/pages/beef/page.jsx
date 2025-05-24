@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react'; 
 import Link from 'next/link';
 
 const Page = () => {
-  const { keyword } = useParams(); // ✅ Correct way to access dynamic params on the client
+   
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!keyword) return; // wait until keyword is available
-
+       
     const fetchData = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/getData/product/allProduct/${keyword}`,
-          {
+        const res = await fetch(`/api/getData/product/allProduct/beef`,
+          {method:"GET",
+            cache: 'no-store',
             headers: { 'Content-Type': 'application/json' },
           }
         );
@@ -30,15 +28,13 @@ const Page = () => {
     };
 
     fetchData();
-  }, [keyword]);
+  }, [1]);
 
   if (loading) {
     return <div className="mt-16 text-center text-gray-500">Loading...</div>;
   }
 
-  if (!data.length) {
-    return <div className="mt-16 text-center text-gray-500">No items found.</div>;
-  }
+   
 
   return (
     <div className="mt-16">
