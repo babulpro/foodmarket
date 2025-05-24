@@ -10,6 +10,7 @@ import CartOption from "./CartOption";
 const Navbar = () => {
     const router = useRouter();
     const [user, setUser] = useState("");
+    const [loading, setLoading] = useState(true);
     
 
      useEffect(() => {
@@ -24,7 +25,9 @@ const Navbar = () => {
         
 
         if (data.status === "success") {
-          setUser(data.data[0]?.role || ""); // safely get role
+          setUser(data.data[0]?.role || ""); 
+          // safely get role
+            setLoading(false);
         } else {
           setUser("");
         }
@@ -52,7 +55,13 @@ const Navbar = () => {
     const logIn = async () => {
         router.replace("/login");
     };
-   
+   if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="text-2xl text-gray-500">Loading...</div>
+            </div>
+        );
+    }
     return (
         <div>
             <div className="navbar bg-base-100 fixed top-0 z-50">
