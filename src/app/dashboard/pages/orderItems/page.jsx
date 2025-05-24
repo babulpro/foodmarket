@@ -2,10 +2,13 @@
 import OrderView from '@/app/lib/component/utilityCom/OrderView';
 import React from 'react';
 
-const Page = () => {
+ 
+const Page = async() => {
+    
     return (
-        <div>
+        <div className="mt-20">
             <OrderView/>
+            
         </div>
     );
 };

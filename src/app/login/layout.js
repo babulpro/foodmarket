@@ -1,7 +1,8 @@
-import Navbar from '@/app/lib/component/utilityCom/Navbar';
+ 
 import React from 'react';
 import { cookies } from 'next/headers'
 import MainNavbar from '../lib/component/utilityCom/MainNavbar';
+import Navbar from '../lib/component/utilityCom/Navbar';
 
 
 const layout = async({children}) => {

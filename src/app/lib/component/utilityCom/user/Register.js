@@ -8,11 +8,9 @@ const Register = () => {
     const router = useRouter()
     
     const initData={
-        firstName:"",
-        lastName:"",
+        name:"",
         email:"",
-        password:"",
-        mobile:""
+        password:""
     }
     const [data,setData]=useState({...initData})
 
@@ -50,13 +48,10 @@ const Register = () => {
                                             <h1 className="font-bold capitalize underline text-xl">Register</h1><br/>
                                             
                                           
-                            <input type='text' name="firstName" placeholder='First Name' value={data.firstName} onChange={(e)=>HandleChange("firstName",e.target.value)} className="inputClass text-left" id="firstName" required/> <br/><br/>
-
-                            <input type='text' placeholder='Last Name' name="lastName" value={data.lastName} onChange={(e)=>HandleChange("lastName",e.target.value)} className="inputClass text-left" id="lastName"/> <br/><br/>
-
-                            <input type='text' placeholder='Mobile Number' name="mobile" value={data.mobile} onChange={(e)=>HandleChange("mobile",e.target.value)} className="inputClass text-left" id="mobile"/> <br/><br/>
+                            <input type='text' name="name" placeholder='your name' value={data.name} onChange={(e)=>HandleChange("name",e.target.value)} className="inputClass text-left" id="name" required/> <br/><br/>
 
                                             <input className="inputForm" type="email" name="email" value={data.email} placeholder="Email" onChange={(e)=>HandleChange(e.target.name,e.target.value)} required/><br/><br/>
+                                            
                                             <input className="inputForm" type="password" value={data.password} placeholder="Password " name="password" onChange={(e)=>HandleChange(e.target.name,e.target.value)} required/><br/><br/>
 
                                             <div className="inline-block px-2 mt-1 text-center text-slate-400 bg-slate-800 rounded-full lg:mt-3 hover:bg-slate-700 hover:text-slate-300">

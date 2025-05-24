@@ -1,247 +1,287 @@
-import { DecodedJwtToken } from "@/app/lib/component/authFunction/JwtHelper"
-import dbConnect from "@/app/lib/db/db"
-import { Cart, CartItem, Order, OrderItem, Product } from "@/app/lib/db/model/AllModel"
-import mongoose from "mongoose"
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
+ import { DecodedJwtToken } from "@/app/lib/component/authFunction/JwtHelper";
+import dbConnect from "@/app/lib/db/db";
+import { FoodItem, Order, User } from "@/app/lib/db/model/AllModel";
+import mongoose from "mongoose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
+export async function POST(req) {
+  try {
+    await dbConnect();
+    const cookieStore = cookies();
+    const token = cookieStore.get('token');
 
-export async function POST(req,res) {
+    // 1. Authentication Check
+    if (!token) {
+      return NextResponse.json(
+        { status: "fail", message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await DecodedJwtToken(token.value);
+    const { id: userId } = decoded;
+
+    // 2. User Check
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { status: "fail", message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // 3. Request Body Parse
+    const { items, paymentMethod, deliveryNotes, contactPhone, deliveryAddress } = await req.json();
+
+    // 4. Basic Validation
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { status: "fail", message: "Empty cart" },
+        { status: 400 }
+      );
+    }
+
+    if (!["cod", "online"].includes(paymentMethod)) {
+      return NextResponse.json(
+        { status: "fail", message: "Invalid payment method" },
+        { status: 400 }
+      );
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-      await dbConnect();
-      const cookieStore = cookies();
-      const token = cookieStore.get('token');
-  
-      if (!token) {
-        return NextResponse.json(
-          { status: "fail", message: "Unauthorized" }, 
-          { status: 401 }
-        );
-      }
-  
-      const decoded = await DecodedJwtToken(token.value);
-      const { id: userId } = decoded;
-      const { product: productId, quantity, price } = await req.json();
-  
-      // Validate input data
-      if (!productId || !quantity || !price || quantity <= 0) {
-        return NextResponse.json(
-          { status: "fail", message: "Invalid product data" },
-          { status: 400 }
-        );
-      }
-  
-      // Start a transaction to ensure data consistency
-      const session = await mongoose.startSession();
-      session.startTransaction();
-  
-      try {
-        // Check product availability
-        const product = await Product.findById(productId).session(session);
+      let totalPrice = 0;
+      const updatedStockOps = [];
+      const verifiedItems = [];
+
+      for (const item of items) {
+        const { foodItem, quantity } = item;
+
+        const product = await FoodItem.findById(foodItem).session(session);
+
         if (!product) {
-          throw new Error("Product not found");
+          throw new Error(`Product with ID ${foodItem} not found`);
         }
-  
+
         if (product.stock < quantity) {
-          throw new Error(`Insufficient stock. Only ${product.stock} available`);
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}`);
         }
-  
-        // Find or create user's order
-        let order = await Order.findOne({ user: userId }).session(session);
-        if (!order) {
-          order = await Order.create([{
-            user: userId,
-            items: [],
-            totalAmount: 0,
-            status: 'PENDING'
-          }], { session });
-          order = order[0];
-        }
-  
-        // Create order item
-        const itemTotal = price * quantity;
-        const [orderItem] = await OrderItem.create([{
-          order: order._id,
-          product: productId,
+
+        // Prepare update and verified item
+        totalPrice += product.price * quantity;
+
+        updatedStockOps.push({
+          updateOne: {
+            filter: { _id: product._id },
+            update: { $inc: { stock: -quantity } }
+          }
+        });
+
+        verifiedItems.push({
+          foodItem: product._id,
           quantity,
-          price: itemTotal
-        }], { session });
-  
-        // Update order
-        order.items.push(orderItem._id);
-        order.totalAmount += itemTotal;
-        await order.save({ session });
-  
-        // Update product stock
-        product.stock -= quantity;
-        await product.save({ session });
-  
-        // Remove from cart (with user validation)
-        const cart = await Cart.findOne({ user: userId }).session(session);
-        if (cart) {
-          const cartItem = await CartItem.findOneAndDelete({
-            cart: cart._id,
-            product: productId
-          }).session(session);
-  
-          if (cartItem) {
-            // Remove reference from cart
-            cart.items.pull(cartItem._id);
-            await cart.save({ session });
-          }
-        }
-  
-        await session.commitTransaction();
-        session.endSession();
-  
-        return NextResponse.json({
-          status: "success",
-          data: {
-            orderId: order._id,
-            orderItem,
-            totalAmount: order.totalAmount,
-            remainingStock: product.stock
-          },
-          message: "Order created successfully"
+          unitPrice: product.price
         });
-  
-      } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
       }
-  
+
+      // 5. Update Stocks in Bulk
+      if (updatedStockOps.length > 0) {
+        await FoodItem.bulkWrite(updatedStockOps, { session });
+      }
+
+      // 6. Create Order
+      const [order] = await Order.create([{
+        user: userId,
+        deliveryAddress,
+        contactPhone,
+        items: verifiedItems,
+        status: "pending",
+        paymentMethod,
+        totalPrice,
+        deliveryNotes
+      }], { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json({
+        status: "success",
+        data: {
+          orderId: order._id,
+          totalPrice,
+          estimatedDelivery: new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
+        }
+      });
+
     } catch (error) {
-      console.error("Order creation error:", error);
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+
+  } catch (error) {
+    console.error("Order Error:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        message: error.message,
+        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+      },
+      { status: error.message?.includes('stock') ? 400 : 500 }
+    );
+  }
+}
+
+
+
+ export async function GET() {
+  try {
+    await dbConnect();
+
+    const cookieStore = cookies();
+    const token = cookieStore.get("token");
+
+    if (!token) {
       return NextResponse.json(
-        { 
-          status: "error", 
-          message: error.message || "Failed to create order",
-          ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-        },
-        { status: error.message.includes('stock') ? 400 : 500 }
+        { status: "fail", message: "Unauthorized" },
+        { status: 401 }
       );
     }
+
+    const decoded = await DecodedJwtToken(token.value);
+    const { id: userId } = decoded;
+
+    // ✅ Populate name, price, imageUrl for each foodItem in the order
+    const orders = await Order.find({ user: userId })
+      .populate({
+        path: "items.foodItem",
+        select: "name price imageUrl", // Must match the FoodItem schema
+      })
+      .sort({ createdAt: -1 });
+
+    const totalAmount = orders.reduce(
+      (sum, order) => sum + (order.totalPrice || 0),
+      0
+    );
+
+    return NextResponse.json({
+      status: "success",
+      count: orders.length,
+      totalAmount,
+      data: orders,
+    });
+  } catch (error) {
+    console.error("Order Fetch Error:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        message: error.message,
+        ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+      },
+      { status: 500 }
+    );
   }
+}
 
- 
 
-  export async function DELETE(req,res) {
+
+
+
+
+
+
+
+
+
+
+
+export async function DELETE(req) {
+  try {
+    await dbConnect();
+    const cookieStore = cookies();
+    const token = cookieStore.get("token");
+
+    if (!token) {
+      return NextResponse.json(
+        { status: "fail", message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await DecodedJwtToken(token.value);
+    const { id: userId } = decoded;
+
+    const { orderId, orderItemId } = await req.json();
+
+    if (!orderId || !orderItemId) {
+      return NextResponse.json(
+        { status: "fail", message: "Missing orderId or orderItemId" },
+        { status: 400 }
+      );
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-      await dbConnect();
-      const cookieStore = cookies();
-      const token = cookieStore.get('token');
-  
-      if (!token) {
-        return NextResponse.json(
-          { status: "fail", message: "Unauthorized" }, 
-          { status: 401 }
-        );
+      const order = await Order.findById(orderId).session(session);
+      if (!order || order.user.toString() !== userId) {
+        throw new Error("Order not found or access denied");
       }
-  
-      const decoded = await DecodedJwtToken(token.value);
-      const userId = decoded.id;
-      const { orderId, orderItemId } = await req.json();
-  
-      if (!orderId || !orderItemId) {
-        return NextResponse.json(
-          { status: "fail", message: "Missing order ID or item ID" },
-          { status: 400 }
-        );
+
+      const itemToRemove = order.items.id(orderItemId);
+      if (!itemToRemove) {
+        throw new Error("Order item not found");
       }
-  
-      // Start transaction
-      const session = await mongoose.startSession();
-      session.startTransaction();
-  
-      try {
-        // Verify the order belongs to the user
-        const order = await Order.findOne({ 
-          _id: orderId, 
-          user: userId 
-        }).session(session);
-  
-        if (!order) {
-          throw new Error("Order not found or access denied");
-        }
-  
-        // Find and remove the order item (with product reference)
-        const deletedItem = await OrderItem.findOneAndDelete({
-          _id: orderItemId,
-          order: orderId
-        }).session(session);
-  
-        if (!deletedItem) {
-          throw new Error("Order item not found");
-        }
-  
-        // Update product stock
-        const product = await Product.findByIdAndUpdate(
-          deletedItem.product,
-          { $inc: { stock: deletedItem.quantity } },
-          { new: true, session }
-        );
-  
-        // Update the order
-        order.items = order.items.filter(item => item.toString() !== orderItemId);
-        order.totalAmount = Math.max(0, order.totalAmount - deletedItem.price);
-        
-        // Delete the order if it's empty
-        if (order.items.length === 0) {
-          await Order.findByIdAndDelete(orderId).session(session);
-          await session.commitTransaction();
-          
-          return NextResponse.json({
-            status: "success",
-            message: "Order deleted successfully as it became empty",
-            data: { 
-              deletedOrder: orderId,
-              restoredStock: {
-                productId: deletedItem.product,
-                quantity: deletedItem.quantity,
-                newStock: product.stock
-              }
-            }
-          });
-        }
-        
-        await order.save({ session });
-        await session.commitTransaction();
-  
-        return NextResponse.json({
-          status: "success",
-          message: "Order item removed successfully",
-          data: {
-            deletedItem,
-            restoredStock: {
-              productId: deletedItem.product,
-              quantity: deletedItem.quantity,
-              newStock: product.stock
-            },
-            updatedOrder: {
-              id: order._id,
-              totalAmount: order.totalAmount,
-              remainingItems: order.items.length
-            }
-          }
-        });
-  
-      } catch (error) {
-        await session.abortTransaction();
-        throw error;
-      } finally {
-        session.endSession();
-      }
-  
-    } catch (error) {
-      console.error("Order removal error:", error);
-      return NextResponse.json(
-        { 
-          status: "error", 
-          message: error.message || "Failed to remove order item",
-          ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-        },
-        { status: error.message.includes('not found') ? 404 : 500 }
+
+      // Restore stock
+      await FoodItem.findByIdAndUpdate(
+        itemToRemove.foodItem,
+        { $inc: { stock: itemToRemove.quantity } },
+        { session }
       );
+
+      // Update order total price
+      const itemSubtotal = itemToRemove.unitPrice * itemToRemove.quantity;
+      order.totalPrice -= itemSubtotal;
+
+      // Remove the item
+      order.items.pull({ _id: orderItemId });
+
+      // If order has no items left, optionally delete it
+      if (order.items.length === 0) {
+        await Order.findByIdAndDelete(orderId).session(session);
+      } else {
+        await order.save({ session });
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json({
+        status: "success",
+        message: "Item removed and stock restored",
+        data: {
+          updatedOrderId: orderId,
+        },
+      });
+    } catch (err) {
+      await session.abortTransaction();
+      session.endSession();
+      throw err;
     }
+  } catch (err) {
+    console.error("DELETE Order Item Error:", err);
+    return NextResponse.json(
+      {
+        status: "error",
+        message: err.message,
+        ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+      },
+      { status: err.message?.includes("not found") ? 404 : 500 }
+    );
   }
+}

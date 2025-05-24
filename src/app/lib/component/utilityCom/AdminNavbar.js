@@ -7,39 +7,11 @@ import toast from "react-hot-toast";
 import CartOption from "./CartOption";
  
 
-const Navbar = () => {
+const AdminNavbar = () => {
     const router = useRouter();
-    const [user, setUser] = useState("");
-    
-
-     useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/User/get", {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        const data = await response.json();
-        
-
-        if (data.status === "success") {
-          setUser(data.data[0]?.role || ""); // safely get role
-        } else {
-          setUser("");
-        }
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-        setUser("");
-      }
-    };
-
-    fetchUser();
-  }, []);
-   
 
     const logOut = async () => {
-        const config = { method: "DELETE" };
+        const config = { method: "get" };
         let response = await fetch("/api/login", config, { cache: "force-cache" });
         let json = await response.json();
 
@@ -106,16 +78,9 @@ const Navbar = () => {
                                     </Link>
                         </li>
                         <li>
-
-                            {
-                                user==="admin"?
-                                <Link href={"/dashboard/pages/admin"} className="justify-between">
-                                       admin
-                                    </Link>:user==="cook"? <Link href={"/dashboard/pages/cook"} className="justify-between">
-                                       cook
-                                    </Link>:user==="delivery"? <Link href={"/dashboard/pages/delivery"} className="justify-between">
-                                       delivery
-                                    </Link>:""}
+                            <Link href={"/dashboard/pages/seafood"} className="justify-between">
+                                       seafood
+                                    </Link>
                         </li>
                            
                         </ul>
@@ -157,16 +122,9 @@ const Navbar = () => {
                                     </Link>
                         </li>
                         <li>
-
-                            {
-                                user==="admin"?
-                                <Link href={"/dashboard/pages/admin"} className="justify-between">
-                                       admin
-                                    </Link>:user==="cook"? <Link href={"/dashboard/pages/cook"} className="justify-between">
-                                       cook
-                                    </Link>:user==="delivery"? <Link href={"/dashboard/pages/delivery"} className="justify-between">
-                                       delivery
-                                    </Link>:""}
+                            <Link href={"/dashboard/pages/seafood"} className="justify-between">
+                                       seafood
+                                    </Link>
                         </li>
                     </ul>
                 </div>
@@ -219,4 +177,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default AdminNavbar;

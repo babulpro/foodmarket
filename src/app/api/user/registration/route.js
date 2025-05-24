@@ -1,11 +1,12 @@
  
  
-import { NextResponse } from "next/server";
-import  bcrypt  from 'bcrypt'; 
+import { CreateJwtToken,DecodedJwtToken } from "@/app/lib/component/authFunction/JwtHelper";
 import dbConnect from "@/app/lib/db/db";
+import bcrypt from "bcrypt";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { User } from "@/app/lib/db/model/AllModel";
-import { CreateJwtToken } from "@/app/lib/component/authFunction/JwtHelper";
-import {cookies} from 'next/headers'
+ 
 
 export async function POST(req) {
   const data = await req.json();
@@ -13,15 +14,15 @@ export async function POST(req) {
   // Password hashing
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(data.password, salt);
-  data.password = hash; 
-  data.role ="ADMIN"
-   
+  data.password = hash;
+  let email= data.email
+
   await dbConnect();
-  const user = await User.findOne({ email:data.email })
+  const user = await User.findOne({ email })
   if(!user){
       try {
         const newUser = await User.create({ ...data });
-        const token = await CreateJwtToken(newUser.email,newUser._id)
+        const token = await CreateJwtToken(email)
         const response = NextResponse.json({ msg: "Registation successful", status: "ok" , data:newUser});
         response.cookies.set({
             name: 'token',
@@ -48,4 +49,5 @@ export async function POST(req) {
 }
 
  
+
  

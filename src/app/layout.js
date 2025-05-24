@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import MainNavbar from "./lib/component/utilityCom/MainNavbar";
 import Footer from "./lib/component/utilityCom/Footer";
 import { Toaster } from "react-hot-toast";
 
@@ -25,12 +24,10 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="mb-16">
- 
-        </div>
-        <div className="min-h-screen">
+        
+        <div className="">
                         {children}
-                    </div>
+          </div>
         <Footer/>
         <Toaster position="top-center" reverseOrder={false}/>
       </body>

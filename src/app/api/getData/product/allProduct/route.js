@@ -1,5 +1,5 @@
 import dbConnect from "@/app/lib/db/db";
-import { Product } from "@/app/lib/db/model/AllModel";
+import { FoodItem } from "@/app/lib/db/model/AllModel";
 import { NextResponse } from "next/server";
 
  
@@ -8,7 +8,8 @@ export async function POST(req) {
 
   try {
     const body = await req.json();
-    const { name, description, price,images,stock,category,keyword} = body;
+   
+    const { name, description, price,image,category,stock}= body;
 
     if (!category) {
       return NextResponse.json({ status: "failed", msg: "Category ID is required" }, { status: 400 });
@@ -18,13 +19,18 @@ export async function POST(req) {
       name,
       description,
       price,
-      images,
-      stock,
+      image,
       category,
-      keyword
+      stock
     };
+    const findItem = await FoodItem.findOne({name:name,category:category})
+    
+    if(findItem){
+      return NextResponse.json({status:"fail",message:"already have the product"})
+    }
+     
 
-    const result = await  Product.create({...product});
+    const result = await  FoodItem.create({...product});
 
     return NextResponse.json({ status: "success", data: result });
   } catch (error) {

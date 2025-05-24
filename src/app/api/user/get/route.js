@@ -1,9 +1,11 @@
  
-
-import dbConnect from "@/app/lib/db/db";
+ 
 import { NextResponse } from "next/server";
-import { User } from "@/app/lib/db/model/AllModel";
+ ;
 import { cookies } from "next/headers";
+ 
+import dbConnect from "@/app/lib/db/db";
+import { User } from "@/app/lib/db/model/AllModel";
 import { DecodedJwtToken } from "@/app/lib/component/authFunction/JwtHelper";
 
  
@@ -22,7 +24,7 @@ export async function GET(req) {
              }
 
     const users = await User.find({_id:decoded.id});
-    return NextResponse.json(users);
+    return NextResponse.json({status:"success",data:users});
   } catch (error) {
     return NextResponse.json({ status: "error", msg: error.message }, { status: 400 });
   }

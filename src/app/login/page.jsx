@@ -13,6 +13,7 @@ export default function Page(){
 
     
     const [data,setData]=useState({email:"",password:""})
+    const [user,setUser]=useState("")
     const router= useRouter()
     
 
@@ -52,14 +53,14 @@ export default function Page(){
                 if (json.status === "ok") {
                     
                     toast.success('Wellcome To Home of Knowledge')
-                    window.location.replace("/")
+                    router.push("/")
                 } else {
                     toast.error("Please provide valid email and password");
                 }
             } catch (error) {
                 toast.error("Please provide valid email and password");
 
-            }
+            } 
         }
     };
  

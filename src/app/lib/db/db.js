@@ -1,7 +1,7 @@
  
 import mongoose from 'mongoose';
 
-const MONGODB_URI ='mongodb+srv://babul1946:babul@practice.n2ruz.mongodb.net/E-commerce?retryWrites=true&w=majority' ||'mongodb+srv://babul1946:babul@practice.n2ruz.mongodb.net0/';
+const MONGODB_URI ='mongodb+srv://babul1946:babul@practice.n2ruz.mongodb.net/FoodMarket?retryWrites=true&w=majority';
  
 async function dbConnect() {
   if (mongoose.connection.readyState === 1) {

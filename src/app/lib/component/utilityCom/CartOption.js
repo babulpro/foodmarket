@@ -11,12 +11,12 @@ const CartOption = () => {
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
-        const response = await fetch("/api/getData/product/getToCart", {
+        const response = await fetch("http://localhost:3000/api/getData/product/addToOrder", {
           
         });
         const result = await response.json();
 
-        if (result.status === "ok") {
+        if (result.status === "success") {
           setData(result.data);
         } else {
           setError("Failed to fetch data");
@@ -35,15 +35,15 @@ const CartOption = () => {
   useEffect(() => {
     if (data.length > 0) {
       const totalPrice = data.reduce((acc, item) => {
-        return item.product ? acc + item.product.price * item.quantity : acc;
+        return item.items ? acc + item.items[0].foodItem.price * item.items[0].quantity : acc;
       }, 0);
-      setPrice(totalPrice);
+      setPrice((totalPrice.toFixed(2)));
     }
   }, [data]);
 
   if (loading) return ;
   
-
+ 
 
   return (
     <div className="dropdown dropdown-end">
@@ -74,9 +74,7 @@ const CartOption = () => {
           <span className="text-lg font-bold">{data.length} Items</span>
           <span className="text-info">Subtotal: {price}</span>
           <div className="card-actions">
-            <Link href={"/dashboard/pages/cartItems"} className="btn btn-primary btn-block">
-              View Cart
-            </Link>
+             
             <Link href={"/dashboard/pages/orderItems"} className="btn btn-primary btn-block">
               View Order
             </Link>

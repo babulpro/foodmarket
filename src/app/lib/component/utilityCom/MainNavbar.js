@@ -5,35 +5,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 const MainNavbar = () => {
-    const router = useRouter();
-    const [activePath, setActivePath] = useState(""); 
-    const [Data, setData] = useState([]);
-    const [error, setError] = useState(null);
+    
 
-    useEffect(() => {
-        const fetchHeroData = async () => {
-            try {
-                const response = await fetch("/api/getData/navbar", { cache: "no-store" });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                setData(data.data); 
-            } catch (err) {
-                console.error("Error fetching navbar data:", err);
-                setError(err.message);
-            }
-        };
-
-        fetchHeroData();
-    }, []);
-
-    useEffect(() => {
-        setActivePath(window.location.pathname);
-    }, []);
-
+  
  
     return (
         <div>
@@ -60,13 +34,38 @@ const MainNavbar = () => {
                             tabIndex={0}
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
                         >
-                            {Data.map((value) => (
-                                <li key={value._id}>
-                                    <Link href={value.link} className="justify-between">
-                                        {value.name}
+                            <li>
+                                <Link href={"/"} className="justify-between">
+                                          home
+                                        </Link>
+                            </li>
+                            <li >
+                                    <Link href={"/dashboard/pages/mutton"} className="justify-between">
+                                                                   mutton
                                     </Link>
-                                </li>
-                            ))}
+                                                                
+                            </li>
+                                                    <li>
+                                                        <Link href={"/dashboard/pages/beef"} className="justify-between">
+                                                                   beef
+                                                                </Link>
+                                                    </li>
+                                                    <li>
+                                                                <Link href={"/dashboard/pages/chicken"} className="justify-between">
+                                                                   chicken
+                                                                </Link>
+                                                    </li>
+                                                    <li>
+                                                                <Link href={"/dashboard/pages/fish"} className="justify-between">
+                                                                   fish
+                                                                </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link href={"/dashboard/pages/seafood"} className="justify-between">
+                                                                   seafood
+                                                                </Link>
+                                                    </li>
+                             
                         </ul>
                     </div>
 
@@ -79,15 +78,37 @@ const MainNavbar = () => {
 
                 <div className="navbar-center hidden lg:flex">
                     <ul className="menu menu-horizontal px-1">
-                        {Data.map((value) => (
-                             
-                               <li key={value._id}>
-                                    <Link href={value.link} className="justify-between">
-                                        {value.name}
+                        <li>
+                                <Link href={"/"} className="justify-between">
+                                          home
+                                        </Link>
+                            </li>
+                        <li >
+                            <Link href={"/dashboard/pages/mutton"} className="justify-between">
+                                       Mutton
                                     </Link>
-                                </li>
-                             
-                        ))}
+                                    
+                        </li>
+                        <li>
+                            <Link href={"/dashboard/pages/beef"} className="justify-between">
+                                       beef
+                                    </Link>
+                        </li>
+                        <li>
+                                    <Link href={"/dashboard/pages/chicken"} className="justify-between">
+                                       chicken
+                                    </Link>
+                        </li>
+                        <li>
+                                    <Link href={"/dashboard/pages/fish"} className="justify-between">
+                                       fish
+                                    </Link>
+                        </li>
+                        <li>
+                            <Link href={"/dashboard/pages/seafood"} className="justify-between">
+                                       seafood
+                                    </Link>
+                        </li>     
                     </ul>
                 </div>
 

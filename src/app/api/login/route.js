@@ -1,10 +1,11 @@
  
 import { cookies } from 'next/headers';
-import dbConnect from "@/app/lib/db/db";
+ 
 import { NextResponse } from "next/server";
 import  bcrypt  from 'bcrypt';
 import { CreateJwtToken } from "@/app/lib/component/authFunction/JwtHelper";
 import { User } from '@/app/lib/db/model/AllModel';
+import dbConnect from '@/app/lib/db/db';
 
 export async function POST(req, res) {
     const data = await req.json();    
@@ -29,7 +30,7 @@ export async function POST(req, res) {
         }
         
         const token = await CreateJwtToken(user.email,user._id.toString());
-        const response = NextResponse.json({ msg: "Login successful", status: "ok" });
+        const response = NextResponse.json({ msg: "Login successful",data:user.data, status: "ok" });
         response.cookies.set({
             name: 'token',
             value: token,
@@ -49,10 +50,48 @@ export async function POST(req, res) {
 
 
 
-export async function GET(req) {
+export async function DELETE(req) {
     cookies().delete('token')
     return NextResponse.json({
         msg:"request Completed",status:"ok"
     })   
       
 }
+
+//  export async function GET() {
+//   try {
+//     await dbConnect();
+
+//     const cookieStore = cookies();
+//     const token = cookieStore.get("token");
+
+//     if (!token) {
+//       return NextResponse.json(
+//         { status: "fail", message: "Unauthorized" },
+//         { status: 401 }
+//       );
+//     }
+
+//     const decoded = await DecodedJwtToken(token.value);
+//     const { id: userId } = decoded;
+
+//     // ✅ Populate name, price, imageUrl for each foodItem in the order
+//     const user = await user.find({ user: userId })
+     
+
+//     return NextResponse.json({
+//       status: "success", 
+//       data: user,
+//     });
+//   } catch (error) {
+//     console.error("Order Fetch Error:", error);
+//     return NextResponse.json(
+//       {
+//         status: "error",
+//         message: error.message,
+//         ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+//       },
+//       { status: 500 }
+//     );
+//   }
+// }
