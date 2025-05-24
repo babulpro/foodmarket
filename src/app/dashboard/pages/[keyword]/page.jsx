@@ -1,109 +1,86 @@
-"use client"
+"use client";
+
 import { useEffect, useState } from 'react';
-import FoodCard from '@/app/lib/component/utilityCom/FoodCard';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-const Page = ({ params }) => {
-    
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
+const Page = () => {
+  const { keyword } = useParams(); // ✅ Correct way to access dynamic params on the client
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const { keyword } =await params;
-            try {
-                const config = {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                };
-                const response = await fetch(`http://localhost:3000/api/getData/product/allProduct/${keyword}`, config);
-                const { data } = await response.json();
-                setData(data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    if (!keyword) return; // wait until keyword is available
 
-        fetchData();
-    }, [1]);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/getData/product/allProduct/${keyword}`,
+          {
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+        const json = await res.json();
+        setData(json.data || []);
+      } catch (error) {
+        console.error('Fetch failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (loading) {
-        return <div className="mt-16">Loading...</div>;
-    }
- 
-    return (
-        <div className="mt-16">
-            <div className="grid grid-cols-1 gap-3 p-6 w-3/4 m-auto">
-                  {data.map((item) => (
-                    <div 
-                      key={item._id} 
-                      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                    >
-                      {/* Food Image */}
-                      <div className="h-96 overflow-hidden">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-            
-                      {/* Food Details */}
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
-                          <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-sm font-semibold">
-                            {item.category}
-                          </span>
-                        </div>
-            
-                        <p className="text-gray-600 mt-2">{item.description}</p>
-            
-                        <div className="mt-4 flex justify-between items-center">
-                          <span className="text-2xl font-bold text-gray-900">
-                            ${item.price.toFixed(2)}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            Stock: {item.stock}
-                          </span>
-                        </div>
-            
-                        {/* Quantity Selector
-                        <div className="mt-4 flex items-center">
-                          <label htmlFor={`quantity-${item._id}`} className="mr-2 text-gray-700">
-                            Qty:
-                          </label>
-                          <input
-                            type="number"
-                            id={`quantity-${item._id}`}
-                            min="1"
-                            max={item.stock}
-                            value={quantities[item._id] || 1}
-                            onChange={(e) => handleQuantityChange(item._id, parseInt(e.target.value))}
-                            className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center"
-                          />
-                        </div> */}
-            
-                        {/* Action Buttons */}
-                        <div className="mt-6 flex space-x-2">
-                            <Link
-                                href={`/dashboard/pages/product/${item._id}`}
-                                className="flex-1 bg-blue-600 text-center hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors duration-300"
-                            >
-                            Order Now
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-            {/* <FoodCard items={data} /> */}
-        </div>
-    );
+    fetchData();
+  }, [keyword]);
+
+  if (loading) {
+    return <div className="mt-16 text-center text-gray-500">Loading...</div>;
+  }
+
+  if (!data.length) {
+    return <div className="mt-16 text-center text-gray-500">No items found.</div>;
+  }
+
+  return (
+    <div className="mt-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 w-full max-w-7xl mx-auto">
+        {data.map((item) => (
+          <div
+            key={item._id}
+            className="bg-white rounded-lg shadow hover:shadow-lg transition duration-300 overflow-hidden"
+          >
+            <div className="h-64 overflow-hidden">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between">
+                <h3 className="text-xl font-semibold">{item.name}</h3>
+                <span className="text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                  {item.category}
+                </span>
+              </div>
+              <p className="text-gray-600 mt-2 line-clamp-2">{item.description}</p>
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-lg font-bold text-gray-800">${item.price.toFixed(2)}</span>
+                <span className="text-sm text-gray-500">Stock: {item.stock}</span>
+              </div>
+              <div className="mt-4">
+                <Link
+                  href={`/dashboard/pages/product/${item._id}`}
+                  className="block text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+                >
+                  Order Now
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default Page;
